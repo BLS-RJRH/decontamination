@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check decontamination room</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Prompt', sans-serif; }
+  </style>
+</head>
+<body class="bg-[#f0f4f9] min-h-screen py-6 px-4">
+  <div class="max-w-2xl mx-auto space-y-4">
+
+    <!-- Header Card -->
+    <div class="bg-white rounded-xl border-t-8 border-blue-600 shadow-sm p-6 border-x border-b border-slate-200">
+      <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Check decontamination room</h1>
+      <p class="text-slate-600 text-sm mt-1">RJR-FM-FMS-003-00</p>
+      <div class="mt-4 pt-4 border-t border-slate-100 text-xs text-red-500 font-medium">
+        * Indicates required question
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form id="checkForm" class="space-y-4">
+      
+      <!-- ชื่อผู้บันทึก -->
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+        <label for="recorderName" class="block font-medium text-slate-800 text-base mb-3">
+          ชื่อผู้บันทึก <span class="text-red-500">*</span>
+        </label>
+        <select id="recorderName" required class="w-full sm:w-72 p-2.5 border border-slate-300 rounded-lg bg-white text-slate-700 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600">
+          <option value="" disabled selected>Choose</option>
+          <option value="นายพลธร บัวแย้ม">นายพลธร บัวแย้ม</option>
+          <option value="นายชัยชนะ เล้านิยมยินดี">นายชัยชนะ เล้านิยมยินดี</option>
+          <option value="นายไพโรจน์ ใจแสน">นายไพโรจน์ ใจแสน</option>
+          <option value="นายธวัชชัย แสงโนราช">นายธวัชชัย แสงโนราช</option>
+          <option value="นายศุภกร ชิตนุรัตน์">นายศุภกร ชิตนุรัตน์</option>
+          <option value="นายธิติภพ พูลเกิด">นายธิติภพ พูลเกิด</option>
+          <option value="นายภาณุภณ วชิรหิรัญกุล">นายภาณุภณ วชิรหิรัญกุล</option>
+          <option value="นายธนาเทพ ฉายบุตร">นายธนาเทพ ฉายบุตร</option>
+          <option value="นายพลพรรธน์ คีตะพันธ์สังวร">นายพลพรรธน์ คีตะพันธ์สังวร</option>
+        </select>
+      </div>
+
+      <!-- รายการตรวจสอบ 9 ข้อ -->
+      <div id="questionsList" class="space-y-4"></div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between pt-2">
+        <button type="submit" id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-2.5 rounded-lg shadow-sm transition">
+          Submit
+        </button>
+        <button type="button" onclick="resetForm()" class="text-blue-600 hover:text-blue-800 text-sm font-medium px-4 py-2">
+          Clear form
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // URL Web App จาก Google Apps Script
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBhRWwJWjlYbCfqEzvcYna3cAkGiQepreJSla9GUt0oN0ZQrNB60ysM9_5fr2YsGlFFg/exec";
+
+    const questions = [
+      "1.การติดตั้งอุปกรณ์ในพื้นที่ ที่มั่นคง",
+      "2.ไม่มีสิ่งกีดขวางบริเวณอ่างล้างตา",
+      "3.สะอาด ไม่มีคราบสกปรก",
+      "4.สภาพอุปกรณ์พร้อมใช้งาน",
+      "5.น้ำมีความสะอาด ไม่มีกลิ่น/สีผิดปกติ",
+      "6.แรงดันน้ำออกทั้งสองหัวอย่างสมดุล",
+      "7.มีการระบายน้ำทิ้งอย่างเหมาะสม",
+      "8.เปิดน้ำทดสอบได้ทันที ไม่มีการรั่วซึม",
+      "9.มีการติดตั้งป้ายบ่งชี้อุปกรณ์เห็นชัดเจน"
+    ];
+
+    // สร้างกล่องคำถาม 9 ข้อ
+    const container = document.getElementById("questionsList");
+    questions.forEach((title, idx) => {
+      const qNum = idx + 1;
+      const html = `
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200 space-y-3">
+          <p class="font-medium text-slate-800 text-base">${title} <span class="text-red-500">*</span></p>
+          <div class="space-y-2.5 pt-1 text-slate-700">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="q${qNum}" value="ปกติ" checked onchange="toggleOther(${qNum}, false)" class="w-4 h-4 text-blue-600">
+              <span>ปกติ</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="q${qNum}" value="ไม่ปกติ" onchange="toggleOther(${qNum}, false)" class="w-4 h-4 text-blue-600">
+              <span>ไม่ปกติ</span>
+            </label>
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="radio" name="q${qNum}" value="other" onchange="toggleOther(${qNum}, true)" class="w-4 h-4 text-blue-600">
+                <span>Other:</span>
+              </label>
+              <input type="text" id="other_text_${qNum}" disabled placeholder="" class="flex-1 border-b border-slate-300 focus:border-blue-600 outline-none text-sm px-1 py-0.5 bg-transparent disabled:opacity-40">
+            </div>
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML('beforeend', html);
+    });
+
+    function toggleOther(qNum, isOther) {
+      const input = document.getElementById(`other_text_${qNum}`);
+      input.disabled = !isOther;
+      if (isOther) {
+        input.focus();
+        input.required = true;
+      } else {
+        input.value = "";
+        input.required = false;
+      }
+    }
+
+    function resetForm() {
+      document.getElementById("checkForm").reset();
+      for (let i = 1; i <= 9; i++) toggleOther(i, false);
+    }
+
+    document.getElementById("checkForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.innerText = "Submitting...";
+
+      const payload = {
+        recorderName: document.getElementById("recorderName").value
+      };
+
+      for (let i = 1; i <= 9; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`).value;
+        if (selected === "other") {
+          payload[`q${i}`] = document.getElementById(`other_text_${i}`).value.trim();
+        } else {
+          payload[`q${i}`] = selected;
+        }
+      }
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        alert("บันทึกข้อมูลเรียบร้อยแล้ว");
+        resetForm();
+      } catch (err) {
+        alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Submit";
+      }
+    });
+  </script>
+</body>
+</html>
