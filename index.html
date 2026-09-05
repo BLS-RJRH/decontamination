@@ -10,6 +10,31 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     body { font-family: 'Prompt', sans-serif; }
+
+    /* ควบคุมสีผ่าน CSS เมื่อคลิกเลือก (ทำงานเสถียร ไม่ขึ้นกับ JS) */
+    .btn-normal:has(input:checked) {
+      border-color: #10b981 !important; /* emerald-500 */
+      background-color: #ecfdf5 !important; /* emerald-50 */
+      color: #065f46 !important; /* emerald-800 */
+      box-shadow: 0 1px 3px 0 rgba(16, 185, 129, 0.2);
+    }
+    .btn-normal:has(input:checked) svg,
+    .btn-normal:has(input:checked) i {
+      color: #059669 !important;
+      opacity: 1 !important;
+    }
+
+    .btn-abnormal:has(input:checked) {
+      border-color: #f43f5e !important; /* rose-500 */
+      background-color: #fff1f2 !important; /* rose-50 */
+      color: #9f1239 !important; /* rose-800 */
+      box-shadow: 0 1px 3px 0 rgba(244, 63, 94, 0.2);
+    }
+    .btn-abnormal:has(input:checked) svg,
+    .btn-abnormal:has(input:checked) i {
+      color: #e11d48 !important;
+      opacity: 1 !important;
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen py-8 px-4 sm:px-6">
@@ -28,7 +53,7 @@
         <p class="text-blue-200 text-sm mt-1 font-light">Check decontamination room — แผนกอุบัติเหตุและฉุกเฉิน (ER & EMS)</p>
         <div class="mt-4 pt-3 border-t border-blue-800/60 flex items-center gap-1.5 text-xs text-amber-300">
           <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
-          <span>จำเป็นต้องกรอกข้อมูลทุกข้อที่มีเครื่องหมายดอกจัน (*)</span>
+          <span>จำเป็นต้องประเมินและกรอกข้อมูลให้ครบทุกข้อ (*)</span>
         </div>
       </div>
     </div>
@@ -48,7 +73,6 @@
             <option value="" disabled selected>-- เลือกรายชื่อผู้บันทึก --</option>
             <option value="นายพลธร บัวแย้ม">นายพลธร บัวแย้ม</option>
             <option value="นายชัยชนะ เล้านิยมยินดี">นายชัยชนะ เล้านิยมยินดี</option>
-            <option value="นายไพโรจน์ ใจแสน">นายไพโรจน์ ใจแสน</option>
             <option value="นายธวัชชัย แสงโนราช">นายธวัชชัย แสงโนราช</option>
             <option value="นายศุภกร ชิตนุรัตน์">นายศุภกร ชิตนุรัตน์</option>
             <option value="นายธิติภพ พูลเกิด">นายธิติภพ พูลเกิด</option>
@@ -102,72 +126,66 @@
       const qNum = idx + 1;
       const card = `
         <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 space-y-4">
-          <div class="flex items-start justify-between gap-3">
+          <div>
             <h2 class="font-medium text-slate-800 text-base leading-relaxed">
               ${title} <span class="text-rose-500 font-bold">*</span>
             </h2>
-            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500">ข้อ ${qNum}</span>
           </div>
 
-          <!-- ตัวเลือก 3 สถานะ -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-sm">
+          <!-- ตัวเลือก 2 สถานะ: ปกติ / ผิดปกติ -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-sm">
             
-            <!-- ปกติ (เขียว) -->
-            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 cursor-pointer transition">
-              <input type="radio" name="q${qNum}" value="ปกติ" checked onchange="toggleOther(${qNum}, false)" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
-              <span class="font-medium text-emerald-800 flex items-center gap-1.5">
-                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i> ปกติ
+            <!-- ปกติ -->
+            <label class="btn-normal flex items-center gap-2.5 p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 cursor-pointer transition text-slate-600">
+              <input type="radio" name="q${qNum}" value="ปกติ" required onchange="toggleReason(${qNum}, false)" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500">
+              <span class="font-medium flex items-center gap-2">
+                <i data-lucide="check-circle-2" class="w-4 h-4 opacity-40"></i> ปกติ
               </span>
             </label>
 
-            <!-- ไม่ปกติ (แดง) -->
-            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-rose-200 bg-rose-50/40 hover:bg-rose-50 cursor-pointer transition">
-              <input type="radio" name="q${qNum}" value="ไม่ปกติ" onchange="toggleOther(${qNum}, false)" class="w-4 h-4 text-rose-600 focus:ring-rose-500">
-              <span class="font-medium text-rose-800 flex items-center gap-1.5">
-                <i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i> ไม่ปกติ
-              </span>
-            </label>
-
-            <!-- Other (ส้ม) -->
-            <label class="flex items-center gap-2.5 p-3 rounded-xl border border-amber-200 bg-amber-50/40 hover:bg-amber-50 cursor-pointer transition">
-              <input type="radio" name="q${qNum}" value="other" onchange="toggleOther(${qNum}, true)" class="w-4 h-4 text-amber-600 focus:ring-amber-500">
-              <span class="font-medium text-amber-800 flex items-center gap-1.5">
-                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600"></i> อื่นๆ
+            <!-- ผิดปกติ -->
+            <label class="btn-abnormal flex items-center gap-2.5 p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 cursor-pointer transition text-slate-600">
+              <input type="radio" name="q${qNum}" value="ผิดปกติ" onchange="toggleReason(${qNum}, true)" class="w-4 h-4 text-rose-600 focus:ring-rose-500">
+              <span class="font-medium flex items-center gap-2">
+                <i data-lucide="x-circle" class="w-4 h-4 opacity-40"></i> ผิดปกติ
               </span>
             </label>
 
           </div>
 
-          <!-- ช่องระบุรายละเอียดเพิ่มเติมเมื่อเลือก Other -->
-          <div id="other_box_${qNum}" class="hidden pt-1">
-            <input type="text" id="other_text_${qNum}" placeholder="ระบุรายละเอียดความผิดปกติ..." class="w-full border border-amber-300 rounded-xl px-3 py-2 text-sm text-slate-700 bg-amber-50/20 focus:ring-2 focus:ring-amber-500 outline-none transition">
+          <!-- กล่องระบุเหตุผลความผิดปกติ -->
+          <div id="reason_box_${qNum}" class="hidden pt-1">
+            <input type="text" id="reason_text_${qNum}" placeholder="ระบุเหตุผล / รายละเอียดความผิดปกติ... *" class="w-full border border-rose-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 bg-rose-50/30 focus:ring-2 focus:ring-rose-500 outline-none transition">
           </div>
         </div>
       `;
       container.insertAdjacentHTML('beforeend', card);
     });
 
-    // Refresh icons
     lucide.createIcons();
 
-    function toggleOther(qNum, isOther) {
-      const box = document.getElementById(`other_box_${qNum}`);
-      const input = document.getElementById(`other_text_${qNum}`);
-      if (isOther) {
-        box.classList.remove('hidden');
-        input.required = true;
-        input.focus();
+    // จัดการเปิด/ปิดกล่องพิมพ์เหตุผล
+    function toggleReason(qNum, isAbnormal) {
+      const reasonBox = document.getElementById(`reason_box_${qNum}`);
+      const reasonInput = document.getElementById(`reason_text_${qNum}`);
+
+      if (isAbnormal) {
+        reasonBox.classList.remove('hidden');
+        reasonInput.required = true;
+        reasonInput.focus();
       } else {
-        box.classList.add('hidden');
-        input.required = false;
-        input.value = "";
+        reasonBox.classList.add('hidden');
+        reasonInput.required = false;
+        reasonInput.value = "";
       }
     }
 
     function resetForm() {
       if (confirm("ต้องการล้างข้อมูลฟอร์มทั้งหมดหรือไม่?")) {
         document.getElementById("checkForm").reset();
-        for (let i = 1; i <= 9; i++) toggleOther(i, false);
+        for (let i = 1; i <= 9; i++) {
+          toggleReason(i, false);
+        }
       }
     }
 
@@ -183,11 +201,20 @@
       };
 
       for (let i = 1; i <= 9; i++) {
-        const selected = document.querySelector(`input[name="q${i}"]:checked`).value;
-        if (selected === "other") {
-          payload[`q${i}`] = document.getElementById(`other_text_${i}`).value.trim();
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) {
+          alert(`กรุณาตรวจสอบและประเมินให้ครบทุกข้อ (ข้อ: ${questions[i-1]})`);
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> <span>บันทึกผลการตรวจสอบ</span>`;
+          lucide.createIcons();
+          return;
+        }
+
+        if (selected.value === "ผิดปกติ") {
+          const reason = document.getElementById(`reason_text_${i}`).value.trim();
+          payload[`q${i}`] = reason ? reason : "ผิดปกติ";
         } else {
-          payload[`q${i}`] = selected;
+          payload[`q${i}`] = "ปกติ";
         }
       }
 
@@ -201,7 +228,9 @@
 
         alert("✓ บันทึกผลการตรวจสอบสำเร็จเรียบร้อยแล้ว");
         document.getElementById("checkForm").reset();
-        for (let i = 1; i <= 9; i++) toggleOther(i, false);
+        for (let i = 1; i <= 9; i++) {
+          toggleReason(i, false);
+        }
       } catch (err) {
         alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง");
       } finally {
